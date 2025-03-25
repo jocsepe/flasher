@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particle Photon Web Flasher</title>
+</head>
+<body>
+    <h2>Particle Photon Web Flasher</h2>
+
+    <button id="connect">Connect Device</button>
+    
+    <h3>Settings</h3>
+    <label>Standard Firmware: <input type="file" id="fw_standard" accept=".bin"></label><br>
+    <label>Expo Firmware: <input type="file" id="fw_expo" accept=".bin"></label><br>
+    <label>Clean WiFi Firmware: <input type="file" id="fw_wifi" accept=".bin"></label><br>
+    
+    <h3>Flashing Options</h3>
+    <button id="flash_standard" disabled>Flash Standard Firmware</button>
+    <button id="flash_expo" disabled>Flash Expo Firmware</button>
+    <button id="flash_wifi" disabled>Flash Clean WiFi Firmware</button>
+
+    <h3>WiFi Setup</h3>
+    <input type="text" id="wifi_ssid" placeholder="WiFi SSID">
+    <input type="password" id="wifi_password" placeholder="WiFi Password">
+    <button id="set_wifi" disabled>Connect to WiFi</button>
+
+    <p id="status"></p>
+
+    <script>
+        let device;
+
+        document.getElementById('connect').addEventListener('click', async () => {
+            try {
+                device = await navigator.usb.requestDevice({ 
+                    filters: [{ vendorId: 0x2B04 }] // Particle Vendor ID
+                });
+                await device.open();
+                document.getElementById('status').innerText = "Device connected!";
+                document.querySelectorAll("button[id^='flash_'], #set_wifi").forEach(btn => btn.disabled = false);
+            } catch (error) {
+                document.getElementById('status').innerText = "Connection failed: " + error;
+            }
+        });
+
+        async function flashFirmware(fileInput) {
+            if (!device) return alert("No device connected!");
+            let file = fileInput.files[0];
+            if (!file) return alert("Please select a .bin file!");
+
+            let firmwareData = await file.arrayBuffer();
+
+            try {
+                await device.selectConfiguration(1);
+                await device.claimInterface(0);
+                await device.transferOut(2, new Uint8Array(firmwareData));
+
+                document.getElementById('status').innerText = "Flashing complete!";
+            } catch (error) {
+                document.getElementById('status').innerText = "Flashing failed: " + error;
+            }
+        }
+
+        document.getElementById('flash_standard').addEventListener('click', () => flashFirmware(document.getElementById('fw_standard')));
+        document.getElementById('flash_expo').addEventListener('click', () => flashFirmware(document.getElementById('fw_expo')));
+        document.getElementById('flash_wifi').addEventListener('click', () => flashFirmware(document.getElementById('fw_wifi')));
+
+        async function setWiFi() {
+            if (!device) return alert("No device connected!");
+            let ssid = document.getElementById('wifi_ssid').value;
+            let password = document.getElementById('wifi_password').value;
+            if (!ssid || !password) return alert("Enter WiFi details!");
+
+            let wifiData = new TextEncoder().encode(`SSID=${ssid}\nPASS=${password}\n`);
+
+            try {
+                await device.selectConfiguration(1);
+                await device.claimInterface(0);
+                await device.transferOut(2, wifiData);
+
+                document.getElementById('status').innerText = "WiFi setup complete!";
+            } catch (error) {
+                document.getElementById('status').innerText = "WiFi setup failed: " + error;
+            }
+        }
+
+        document.getElementById('set_wifi').addEventListener('click', setWiFi);
+    </script>
+</body>
+</html>
