@@ -68,29 +68,33 @@
             document.getElementById('flash').disabled = false;
             document.getElementById('set_wifi').disabled = false;
         }
+async function flashFirmware() {
+    if (!device) return alert("No device connected!");
 
-        async function flashFirmware() {
-            if (!device) return alert("No device connected!");
+    let selectedFirmware = document.getElementById('fw_type').value;
+    if (!firmwareList[selectedFirmware] || firmwareList[selectedFirmware].length === 0) 
+        return alert("Invalid selection or no firmware available!");
 
-            let selectedFirmware = document.getElementById('fw_type').value;
-            if (!firmwareList[selectedFirmware]) return alert("Invalid selection!");
+    document.getElementById('status').innerText = "Flashing firmware...";
 
-            let firmwareFiles = firmwareList[selectedFirmware];
+    for (let fileUrl of firmwareList[selectedFirmware]) {
+        let response = await fetch(fileUrl);
+        let firmwareData = await response.arrayBuffer();
 
-            for (let fileUrl of firmwareFiles) {
-                let response = await fetch(fileUrl);
-                let firmwareData = await response.arrayBuffer();
+        try {
+            await device.selectConfiguration(1);
+            await device.claimInterface(0);
+            await device.transferOut(2, new Uint8Array(firmwareData));
+            document.getElementById('status').innerText = `Flashed: ${fileUrl}`;
+        } catch (error) {
+            document.getElementById('status').innerText = `Flashing failed: ${fileUrl} - ${error}`;
+            return;
+        }
+    }
 
-                try {
-                    await device.selectConfiguration(1);
-                    await device.claimInterface(0);
-                    await device.transferOut(2, new Uint8Array(firmwareData));
-                    document.getElementById('status').innerText = "Flashed: " + fileUrl;
-                } catch (error) {
-                    document.getElementById('status').innerText = "Flashing failed: " + error;
-                    return;
-                }
-            }
+    document.getElementById('status').innerText = "Flashing complete!";
+}
+
 
             document.getElementById('status').innerText = "Flashing complete!";
         }
