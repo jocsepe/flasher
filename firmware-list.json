@@ -1,7 +1,7 @@
 {
     "Standard Firmware": [
-        "https://yourhosting.com/firmware/standard1.bin",
-        "https://yourhosting.com/firmware/standard2.bin"
+        "https://github.com/particle-iot/device-os/releases/download/v2.0.1/p1-system-part1@2.0.1.bin",
+        "https://github.com/particle-iot/device-os/releases/download/v2.0.1/p1-system-part2@2.0.1.bin"
     ],
     "Expo Firmware": [
         "https://yourhosting.com/firmware/expo.bin"
