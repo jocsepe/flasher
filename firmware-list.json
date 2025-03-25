@@ -1,0 +1,13 @@
+{
+    "Standard Firmware": [
+        "https://yourhosting.com/firmware/standard1.bin",
+        "https://yourhosting.com/firmware/standard2.bin"
+    ],
+    "Expo Firmware": [
+        "https://yourhosting.com/firmware/expo.bin"
+    ],
+    "Clean WiFi Firmware": [
+        "https://yourhosting.com/firmware/cleanwifi1.bin",
+        "https://yourhosting.com/firmware/cleanwifi2.bin"
+    ]
+}
